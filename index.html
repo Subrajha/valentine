@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Will You Be My Valentine?</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #ffe6e6; /* light pink */
+        }
+
+        /* Container card */
+        .container {
+            text-align: center;
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            z-index: 2;
+        }
+
+        h1, h2, p { margin-bottom: 20px; }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .yes-btn {
+            background: #4CAF50;
+            color: white;
+            position: relative;
+        }
+
+        .no-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .final-yes {
+            background: #00c853;
+            font-size: 22px;
+            padding: 15px 35px;
+        }
+
+        button:hover { transform: scale(1.1); }
+
+        .page { display: none; }
+        #page1 { display: block; }
+
+        /* Floating hearts */
+        .heart {
+            position: fixed;
+            font-size: 20px;
+            color: pink;
+            pointer-events: none;
+            animation: floatUp linear infinite;
+            opacity: 0.7;
+            z-index: 1;
+        }
+
+        @keyframes floatUp {
+            from { transform: translateY(100vh); opacity: 0.7; }
+            to { transform: translateY(-10vh); opacity: 0; }
+        }
+
+        /* Confetti canvas for page 3 */
+        canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="container page" id="page1">
+    <h1>Will you be my Valentine? 💖</h1>
+    <div class="buttons">
+        <button class="yes-btn" id="runawayBtn">Yes</button>
+        <button class="no-btn" onclick="goToSecondPage()">No</button>
+    </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="container page" id="page2">
+    <h1>Ohhh so you chose NO? 😏</h1>
+    <p>That option was just a formality anyway.</p>
+    <h2>Will you be my husband? 💍</h2>
+    <button class="final-yes" onclick="finalPage()">Yes</button>
+</div>
+
+<!-- PAGE 3 -->
+<div class="container page" id="page3">
+    <h1>🎉 Congrats! 🎉</h1>
+    <h2>You have subscribed for lifetime ❤️</h2>
+    <p>No cancellation. No refunds. Only love forever 😌</p>
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script>
+    // Runaway button
+    const btn = document.getElementById("runawayBtn");
+    btn.addEventListener("mouseover", function() {
+        const moveAmount = 120;
+        const randomX = (Math.random() - 0.5) * moveAmount;
+        const randomY = (Math.random() - 0.5) * moveAmount;
+        btn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    });
+
+    function goToSecondPage() {
+        document.getElementById("page1").style.display = "none";
+        document.getElementById("page2").style.display = "block";
+    }
+
+    function finalPage() {
+        document.getElementById("page2").style.display = "none";
+        document.getElementById("page3").style.display = "block";
+        startConfetti();
+    }
+
+    // Floating hearts
+    function createHearts(count = 30) {
+        for (let i = 0; i < count; i++) {
+            const heart = document.createElement("div");
+            heart.classList.add("heart");
+            heart.innerHTML = "❤️";
+            heart.style.left = Math.random() * window.innerWidth + "px";
+            heart.style.fontSize = (10 + Math.random() * 25) + "px";
+            heart.style.animationDuration = (5 + Math.random() * 5) + "s";
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 10000);
+        }
+    }
+
+    // Continuously create floating hearts on pages 1 & 2
+    setInterval(() => {
+        if (document.getElementById("page1").style.display === "block" ||
+            document.getElementById("page2").style.display === "block") {
+            createHearts(2); // spawn 2 hearts every 200ms
+        }
+    }, 200);
+
+    // Confetti for page 3
+    const canvas = document.getElementById("confettiCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let confetti = [];
+
+    function startConfetti() {
+        for (let i = 0; i < 150; i++) {
+            confetti.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                r: Math.random() * 6 + 2,
+                d: Math.random() * 5 + 2,
+                color: `hsl(${Math.random()*360},100%,50%)`
+            });
+        }
+        animateConfetti();
+    }
+
+    function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetti.forEach(c => {
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+            ctx.fillStyle = c.color;
+            ctx.fill();
+        });
+        updateConfetti();
+        requestAnimationFrame(animateConfetti);
+    }
+
+    function updateConfetti() {
+        confetti.forEach(c => {
+            c.y += c.d;
+            if (c.y > canvas.height) {
+                c.y = -10;
+                c.x = Math.random() * canvas.width;
+            }
+        });
+    }
+
+    // Resize canvas on window resize
+    window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+</script>
+
+</body>
+</html>
